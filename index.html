@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Link Locker</title>
+  <link rel="icon" href="DiscoQR icon.png" type="image/x-icon">
+  <style>
+    :root {
+      --primary: #007bff;
+      --gradient: linear-gradient(135deg, #667eea, #764ba2);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background: #0f172a;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 30px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    h2, h3 {
+      text-align: center;
+      margin-bottom: 5px;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    input, button {
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+    }
+
+    input {
+      background: #334155;
+      color: white;
+    }
+
+    input::placeholder {
+      color: #cbd5e1;
+    }
+
+    button {
+      background: var(--gradient);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    button:hover {
+      transform: scale(1.03);
+    }
+
+    .link-display {
+      background: #334155;
+      padding: 10px;
+      border-radius: 8px;
+      color: #e2e8f0;
+      word-break: break-all;
+      text-align: left;
+    }
+
+    .copy-btn {
+      background: #22c55e;
+      color: #fff;
+      font-weight: bold;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: -5px;
+    }
+
+    .copy-btn:hover {
+      background: #16a34a;
+    }
+
+    .error {
+      color: #f87171;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    @media (max-width: 500px) {
+      .container {
+        padding: 20px;
+      }
+
+      input, button {
+        font-size: 15px;
+        padding: 10px;
+      }
+    }
+    .copyright {
+      text-align:center;
+       font-weight: bold;
+  background: linear-gradient(to right, blue, rgb(255, 0, 43));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+    }
+  </style>
+</head>
+<body>
+  <!-- Create Link Form -->
+  <div class="container" id="form-container">
+    <h2>🔒 Link Locker</h2>
+    <input type="text" id="name" placeholder="Enter Title" required>
+    <input type="url" id="link" placeholder="Enter URL" required>
+    <input type="password" id="password" placeholder="Enter Password" required>
+    <input type="text" id="hint" placeholder="Enter Hint" required>
+    <button onclick="createLink()">Create Link</button>
+    <p class="copyright">&copy; 2025 MoizUtilify. All Rights Reserved.</p>
+    <div id="generatedLink" style="display:none;">
+      <div class="link-display" id="linkBox"></div>
+      
+      <button class="copy-btn" onclick="copyToClipboard()">📋 Copy Link</button>
+    </div>
+  </div>
+
+  <!-- Unlock Link Page -->
+  <div class="container" id="unlock-container" style="display:none;">
+    <h3 id="showName"></h3>
+    <p id="showHint"></p>
+    <input type="password" id="enteredPassword" placeholder="Enter Password">
+
+    <button onclick="checkPassword()">Unlock</button>
+    <p class="copyright">&copy; 2025 MoizUtilify. All Rights Reserved.</p>
+    <div class="error" id="errorMsg"></div>
+    
+  </div>
+ 
+
+  
+
+  <script>
+    function base64Encode(obj) {
+      return btoa(JSON.stringify(obj));
+    }
+
+    function base64Decode(str) {
+      try {
+        return JSON.parse(atob(str));
+      } catch {
+        return null;
+      }
+    }
+
+    function createLink() {
+      const name = document.getElementById('name').value.trim();
+      const link = document.getElementById('link').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const hint = document.getElementById('hint').value.trim();
+
+      if (!name || !link || !password || !hint) {
+        alert("Please fill all fields.");
+        return;
+      }
+
+      const data = { name, link, password, hint };
+      const encoded = base64Encode(data);
+      const currentUrl = window.location.origin + window.location.pathname;
+      const finalUrl = `${currentUrl}?lock=${encoded}`;
+
+      document.getElementById('generatedLink').style.display = 'block';
+      document.getElementById('linkBox').innerText = finalUrl;
+    }
+
+    function copyToClipboard() {
+      const text = document.getElementById('linkBox').innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        alert("Link copied to clipboard!");
+      }).catch(() => {
+        alert("Failed to copy!");
+      });
+    }
+
+    function checkPassword() {
+      const input = document.getElementById('enteredPassword').value;
+      if (input === storedData.password) {
+        window.location.href = storedData.link;
+      } else {
+        document.getElementById('errorMsg').textContent = "Please Enter a Correct Password";
+      }
+    }
+
+    // Handle Link Access Mode
+    const urlParams = new URLSearchParams(window.location.search);
+    const lock = urlParams.get('lock');
+    let storedData = null;
+
+    if (lock) {
+      storedData = base64Decode(lock);
+      if (storedData) {
+        document.getElementById('form-container').style.display = 'none';
+        document.getElementById('unlock-container').style.display = 'flex';
+        document.getElementById('showHint').textContent = "Hint: " + storedData.hint;
+        document.getElementById('showName').textContent = storedData.name;
+      } else {
+        document.getElementById('form-container').innerHTML = "<p>Invalid or corrupted link data.</p>";
+      }
+    }
+  </script>
+</body>
+</html>
